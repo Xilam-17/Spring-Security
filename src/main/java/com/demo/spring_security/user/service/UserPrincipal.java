@@ -1,7 +1,6 @@
 package com.demo.spring_security.user.service;
 
 import com.demo.spring_security.user.model.UserEntity;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,7 +10,7 @@ import java.util.List;
 
 public class UserPrincipal implements UserDetails {
 
-    private UserEntity user;
+    private final transient UserEntity user;
 
     public UserPrincipal(UserEntity user) {
         this.user = user;
@@ -23,7 +22,7 @@ public class UserPrincipal implements UserDetails {
     }
 
     @Override
-    public @Nullable String getPassword() {
+    public  String getPassword() {
         return user.getPassword();
     }
 

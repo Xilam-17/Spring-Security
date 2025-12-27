@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.apache.catalina.util.ParameterMap;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +24,13 @@ public class JWTService {
     private String secretKey = "";
 
     public JWTService() {
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk = keyGen.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        SecretKey sk = Jwts.SIG.HS256.key().build();
+        secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
+    }
+
+    private Key getKey() {
+        byte[] bytesKey = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(bytesKey);
     }
 
     public String generateToken(String username) {
@@ -42,20 +44,27 @@ public class JWTService {
                 .compact();
     }
 
-    private Key getKey() {
-        byte[] bytesKey = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(bytesKey);
-    }
-
-
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractAllClaims(token).getSubject();
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimResolver.apply(claims);
+    public Date extractExpiration(String token){
+        return extractAllClaims(token).getExpiration();
     }
+
+    public Date extractIssueAt(String token){
+        return extractAllClaims(token).getIssuedAt();
+    }
+
+  /*  @Scheduled(cron = "0 46 19 * * *")
+    public void test() {
+        System.out.println("Hello");
+    }*/
+
+//    private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
+//        final Claims claims = extractAllClaims(token);
+//        return claimResolver.apply(claims);
+//    }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
@@ -74,7 +83,4 @@ public class JWTService {
         return extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
 }

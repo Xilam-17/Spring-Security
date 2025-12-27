@@ -24,7 +24,6 @@ public class UserService implements IUserService{
         this.jwtService = jwtService;
     }
 
-
     private UserEntity mapToEntity(UserDto dto) {
         UserEntity user = new UserEntity();
         user.setUsername(dto.getUsername());
